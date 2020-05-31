@@ -1,0 +1,57 @@
+	.data
+prompt: .asciiz "Enter string:\n"
+	.align 2
+buf:	.space 100
+	.text
+	.globl main
+main:
+	li $v0, 4
+	la $a0, prompt
+	syscall
+	li $v0, 8
+	la $a0, buf
+	li $a1, 100
+	syscall
+	la $t0, buf
+	la $t1, ($t0)
+	li $t2, -2
+	li $t3, 0
+
+# $t0, $t1 - pointer on buffer
+# $t2 - length counter
+# $t6, $t7 - temp
+# $t8 - temp pointer on buffer
+
+	beqz $t0, end
+	
+find_length:
+	addi $t2, $t2, 1
+	lb $t7, ($t1)
+	addi $t1, $t1, 1
+	bnez $t7, find_length
+	la $t1, ($t0)	
+	la $s0, ($t2)
+loop_i:
+	addi $s0, $s0, -1
+	beqz $s0, end
+	la $t1, buf
+	add $s3, $t1, $s0
+	addi $t1, $t1, -1	
+loop_j:
+	addi $t1, $t1, 1
+	bge $t1, $s3, loop_i 	
+	lb $t6, ($t1)	
+	addi $t8, $t1, 1	
+	lb $t7, ($t8)	
+	bgt $t6, $t7, swap
+	j loop_j
+swap:
+	sb $t6, ($t8)
+	sb $t7, ($t1)
+	j loop_j	
+end:
+	li $v0, 4
+	la $a0, buf
+	syscall
+	li $v0, 10
+	syscall
